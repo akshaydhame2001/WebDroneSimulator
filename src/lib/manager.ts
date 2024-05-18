@@ -49,7 +49,7 @@ class Manager {
 
   private connect() {
     console.log("Connecting socket...")
-    this.socket = new WebSocket("ws://172.25.16.1:5760/")
+    this.socket = new WebSocket("ws://127.0.0.1:5678/")
 
     this.socket.onopen = () => {
       if (this.connectionCallback) {

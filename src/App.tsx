@@ -197,7 +197,7 @@ const App: React.FC = () => {
         }}
         style={{ width: "100%", height: "100vh" }}
         mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
-        mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+        mapboxAccessToken="pk.eyJ1IjoiYWtzaGF5ZGhhbWUyMDAxIiwiYSI6ImNsbnNlMjFoeTEwYjAyam16Z2ZpZ2ZuN28ifQ.-znQIL14sA3qc4daXg9T7Q"
         onLoad={onMapLoaded}
         dragRotate={false}
         touchZoomRotate={false}
