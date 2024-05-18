@@ -1,0 +1,38 @@
+// Sidebar.module.scss
+.sidebar {
+    padding: var(--padding-v-large) var(--padding-h-large);
+  
+    h2 {
+      font-weight: bold;
+    }
+  
+    .sidebar-data {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 100%;
+      background: var(--card-color);
+      border-radius: var(--border-radius);
+      padding-bottom: var(--padding-v-large);
+      margin-bottom: var(--padding-v-large);
+  
+      .sidebar-datum {
+        width: 33%;
+        display: flex;
+        margin-top: var(--padding-v-large);
+        flex-direction: column;
+        align-items: center;
+  
+        &.large {
+          width: 50%;
+        }
+  
+        span {
+          margin-top: var(--padding-v);
+          font-weight: bold;
+          color: var(--item-text-color);
+        }
+      }
+    }
+  }
+  

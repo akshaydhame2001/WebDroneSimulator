@@ -1,0 +1,16 @@
+.marker-container {
+    width: 100px;
+    height: 100px;
+  
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .marker {
+    display: inline-block;
+    transform-origin: center;
+    width: 100px;
+    height: 100px;
+  }
