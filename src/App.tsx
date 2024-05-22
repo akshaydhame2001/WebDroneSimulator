@@ -24,8 +24,12 @@ const App: React.FC = () => {
   const inputLoopRef = useRef<NodeJS.Timeout | null>(null)
 
   const clean = (map: any, layerName: string) => {
-    map.removeLayer(layerName)
-    map.removeSource(layerName)
+    if (map.getLayer(layerName)) {
+      map.removeLayer(layerName)
+    }
+    if (map.getSource(layerName)) {
+      map.removeSource(layerName)
+    }
   }
 
   useEffect(() => {
@@ -41,6 +45,11 @@ const App: React.FC = () => {
       setHeading(data.vehicle.heading)
       setCore(data.core)
       setVehicle(data.vehicle)
+
+      updateTrack(
+        [data.vehicle.coordinates.longitude, data.vehicle.coordinates.latitude],
+        "drone"
+      )
 
       if (data.person) {
         setPerson(data.person)
@@ -124,13 +133,14 @@ const App: React.FC = () => {
   }
 
   const prepareMap = () => {
-    setTracks({
+    const newTracks = {
       drone: generateFeatureCollection(),
       person: generateFeatureCollection(),
-    })
+    }
+    setTracks(newTracks)
 
     if (map) {
-      map.addSource("drone", { type: "geojson", data: tracks.drone })
+      map.addSource("drone", { type: "geojson", data: newTracks.drone })
       map.addLayer({
         id: "drone",
         type: "line",
@@ -142,7 +152,7 @@ const App: React.FC = () => {
         },
       })
 
-      map.addSource("person", { type: "geojson", data: tracks.person })
+      map.addSource("person", { type: "geojson", data: newTracks.person })
       map.addLayer({
         id: "person",
         type: "line",
@@ -175,7 +185,7 @@ const App: React.FC = () => {
     const trackData = tracks[trackName]
     if (trackData) {
       trackData.features[0].geometry.coordinates.push(coord)
-      if (map) {
+      if (map && map.getSource(trackName)) {
         map.getSource(trackName).setData(trackData)
       }
     }
