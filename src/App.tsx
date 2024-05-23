@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react"
-import Map, { Marker } from "react-map-gl"
+import Map, { Marker, Source, Layer } from "react-map-gl"
 import Sidebar from "./Sidebar"
 import DroneMarker from "./DroneMarker"
 import manager, { UpdateMessage } from "./lib/manager"
-import { ResponsiveGamepad } from "responsive-gamepad"
+import { useGamepads } from "react-gamepads"
 import "./App.scss"
 import personimg from "./icons/person.png"
 
@@ -22,6 +22,9 @@ const App: React.FC = () => {
   const [person, setPerson] = useState<any>({})
   const [connected, setConnected] = useState(false)
   const inputLoopRef = useRef<NodeJS.Timeout | null>(null)
+  const [gamepads, setGamepads] = useState<any>({})
+
+  useGamepads((gamepads: any) => setGamepads(gamepads))
 
   const clean = (map: any, layerName: string) => {
     if (map.getLayer(layerName)) {
@@ -75,40 +78,31 @@ const App: React.FC = () => {
       prepareMap()
     }
 
-    ResponsiveGamepad.enable()
-    startInputTracking()
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const INTERVAL = 50
+      const SPEED = 1.5
+      const MOVE_DISTANCE = SPEED * (INTERVAL / 1000)
+      const EARTH = 6378137
 
-    return () => {
-      if (inputLoopRef.current) {
-        clearInterval(inputLoopRef.current)
-      }
-    }
-  }, [map])
-
-  const startInputTracking = () => {
-    const INTERVAL = 50
-    const SPEED = 1.5
-    const MOVE_DISTANCE = SPEED * (INTERVAL / 1000)
-    const EARTH = 6378137
-
-    inputLoopRef.current = setInterval(() => {
-      const { DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT } =
-        ResponsiveGamepad.getState()
       const [startLongitude, startLatitude] = personPosition
-
       let north = 0
       let east = 0
 
-      if (DPAD_UP && !DPAD_DOWN) {
-        north = MOVE_DISTANCE
-      } else if (!DPAD_UP && DPAD_DOWN) {
-        north = -MOVE_DISTANCE
-      }
-
-      if (DPAD_LEFT && !DPAD_RIGHT) {
-        east = -MOVE_DISTANCE
-      } else if (!DPAD_LEFT && DPAD_RIGHT) {
-        east = MOVE_DISTANCE
+      switch (e.key) {
+        case "ArrowUp":
+          north = MOVE_DISTANCE
+          break
+        case "ArrowDown":
+          north = -MOVE_DISTANCE
+          break
+        case "ArrowLeft":
+          east = -MOVE_DISTANCE
+          break
+        case "ArrowRight":
+          east = MOVE_DISTANCE
+          break
+        default:
+          break
       }
 
       const dLat = north / EARTH
@@ -124,8 +118,72 @@ const App: React.FC = () => {
         latitude: latOffset,
         longitude: lonOffset,
       })
-    }, INTERVAL)
-  }
+    }
+
+    window.addEventListener("keydown", handleKeyPress)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress)
+    }
+  }, [map, personPosition])
+
+  useEffect(() => {
+    const INTERVAL = 50
+    const SPEED = 1.5
+    const MOVE_DISTANCE = SPEED * (INTERVAL / 1000)
+    const EARTH = 6378137
+
+    const updatePersonPosition = () => {
+      const [startLongitude, startLatitude] = personPosition
+      let north = 0
+      let east = 0
+
+      if (gamepads[0]) {
+        const { buttons } = gamepads[0]
+        if (buttons[12].pressed) {
+          // DPAD_UP
+          north = MOVE_DISTANCE
+        } else if (buttons[13].pressed) {
+          // DPAD_DOWN
+          north = -MOVE_DISTANCE
+        }
+        if (buttons[14].pressed) {
+          // DPAD_LEFT
+          east = -MOVE_DISTANCE
+        } else if (buttons[15].pressed) {
+          // DPAD_RIGHT
+          east = MOVE_DISTANCE
+        }
+      }
+
+      if (north !== 0 || east !== 0) {
+        const dLat = north / EARTH
+        const dLon = east / (EARTH * Math.cos((Math.PI * startLatitude) / 180))
+
+        const latOffset = startLatitude + dLat * (180 / Math.PI)
+        const lonOffset = startLongitude + dLon * (180 / Math.PI)
+
+        setPersonPosition([lonOffset, latOffset])
+
+        manager.send({
+          type: "control",
+          latitude: latOffset,
+          longitude: lonOffset,
+        })
+      }
+    }
+
+    if (!inputLoopRef.current) {
+      inputLoopRef.current = setInterval(updatePersonPosition, INTERVAL)
+    }
+
+    return () => {
+      if (inputLoopRef.current) {
+        clearInterval(inputLoopRef.current)
+        inputLoopRef.current = null
+      }
+    }
+  }, [gamepads, personPosition])
 
   const onMapLoaded = (event: any) => {
     setMap(event.target)
@@ -212,6 +270,30 @@ const App: React.FC = () => {
         dragRotate={false}
         touchZoomRotate={false}
       >
+        <Source id="drone" type="geojson" data={tracks.drone} />
+        <Layer
+          id="drone"
+          type="line"
+          source="drone"
+          layout={{}}
+          paint={{
+            "line-color": "#FFD700",
+            "line-opacity": 0.75,
+            "line-width": 2,
+          }}
+        />
+        <Source id="person" type="geojson" data={tracks.person} />
+        <Layer
+          id="person"
+          type="line"
+          source="person"
+          layout={{}}
+          paint={{
+            "line-color": "#0000FF",
+            "line-opacity": 0.75,
+            "line-width": 2,
+          }}
+        />
         <Marker longitude={position[0]} latitude={position[1]} anchor="center">
           <DroneMarker coordinate={position} bearing={heading} />
         </Marker>

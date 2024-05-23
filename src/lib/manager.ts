@@ -1,143 +1,143 @@
-import { useEffect } from "react";
+import { useEffect } from "react"
 
-interface IncomingMessage {
-  type: "reset" | "update";
+export interface IncomingMessage {
+  type: "reset" | "update"
 }
 
-interface GeoLocation {
-  latitude: number;
-  longitude: number;
+export interface GeoLocation {
+  latitude: number
+  longitude: number
 }
 
 export interface ResetMessage extends IncomingMessage {
-  type: "reset";
+  type: "reset"
 }
 
 export interface UpdateMessage extends IncomingMessage {
-  type: "update";
+  type: "update"
   vehicle: {
-    heading: number;
-    coordinates: GeoLocation;
-  };
+    heading: number
+    coordinates: GeoLocation
+  }
   core: {
-    state: number;
-  };
+    state: number
+  }
   person?: {
-    global: GeoLocation;
+    global: GeoLocation
     local: {
-      z: number;
-      x: number;
-    };
-  };
+      z: number
+      x: number
+    }
+  }
 }
 
 const EMPTY_MESSAGE = JSON.stringify({
   type: "none",
-});
+})
 
 class Manager {
-  private socket: WebSocket | null = null;
-  private changeCallback: ((data: UpdateMessage) => void) | null = null;
-  private resetCallback: ((data: ResetMessage) => void) | null = null;
-  private connectionCallback: ((connected: boolean) => void) | null = null;
+  private socket: WebSocket | null = null
+  private changeCallback: ((data: UpdateMessage) => void) | null = null
+  private resetCallback: ((data: ResetMessage) => void) | null = null
+  private connectionCallback: ((connected: boolean) => void) | null = null
 
-  private pendingMessages: string[] = [];
+  private pendingMessages: string[] = []
 
   constructor() {
-    this.connect();
+    this.connect()
   }
 
   private connect() {
-    console.log("Connecting socket...");
-    this.socket = new WebSocket("ws://127.0.0.1:5678/");
+    console.log("Connecting socket...")
+    this.socket = new WebSocket("ws://127.0.0.1:5678/")
 
     this.socket.onopen = () => {
       if (this.connectionCallback) {
-        this.connectionCallback(true);
+        this.connectionCallback(true)
       }
-    };
+    }
 
     this.socket.onmessage = (event) => {
-      this.onWebsocketMessage(event.data);
-    };
+      this.onWebsocketMessage(event.data)
+    }
 
     this.socket.onclose = () => {
       if (this.connectionCallback) {
-        this.connectionCallback(false);
+        this.connectionCallback(false)
       }
       setTimeout(() => {
-        this.connect();
-      }, 1000);
-    };
+        this.connect()
+      }, 1000)
+    }
 
     this.socket.onerror = () => {
       if (this.socket) {
-        this.socket.close();
+        this.socket.close()
       }
-    };
+    }
   }
 
   private onWebsocketMessage(data: string) {
     try {
-      const messages = data.split("\n");
+      const messages = data.split("\n")
 
       messages.forEach((data: string) => {
-        const message: IncomingMessage = JSON.parse(data);
+        const message: IncomingMessage = JSON.parse(data)
 
         if (message.type === "update" && this.changeCallback) {
-          this.changeCallback(message as UpdateMessage);
+          this.changeCallback(message as UpdateMessage)
         } else if (message.type === "reset" && this.resetCallback) {
-          this.resetCallback(message as ResetMessage);
+          this.resetCallback(message as ResetMessage)
         }
-      });
+      })
 
       // Send any pending messages (even if none)
       const outgoing =
         this.pendingMessages.length > 0
           ? this.pendingMessages.join("\n")
-          : EMPTY_MESSAGE;
+          : EMPTY_MESSAGE
       if (this.socket) {
-        this.socket.send(outgoing);
+        this.socket.send(outgoing)
       }
 
-      this.pendingMessages = [];
+      this.pendingMessages = []
     } catch (e) {
-      console.error(data, e);
+      console.error(data, e)
     }
   }
 
   public send(object: any): void {
-    this.pendingMessages.push(JSON.stringify(object));
+    this.pendingMessages.push(JSON.stringify(object))
   }
 
   public set onchange(fn: (data: UpdateMessage) => void) {
-    this.changeCallback = fn;
+    this.changeCallback = fn
   }
 
   public set onreset(fn: (data: ResetMessage) => void) {
-    this.resetCallback = fn;
+    this.resetCallback = fn
   }
 
   public set onconnected(fn: (connected: boolean) => void) {
-    this.connectionCallback = fn;
+    this.connectionCallback = fn
   }
 
   public cleanup() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.close()
     }
   }
 }
 
-const manager = new Manager();
+const manager = new Manager()
 
 // Hook to cleanup WebSocket connection on component unmount
 export const useCleanupWebSocket = () => {
   useEffect(() => {
     return () => {
-      manager.cleanup();
-    };
-  }, []);
-};
+      manager.cleanup()
+    }
+  }, [])
+}
 
-export default manager;
+export default manager
