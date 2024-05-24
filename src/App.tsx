@@ -127,63 +127,63 @@ const App: React.FC = () => {
     }
   }, [map, personPosition])
 
-  useEffect(() => {
-    const INTERVAL = 50
-    const SPEED = 1.5
-    const MOVE_DISTANCE = SPEED * (INTERVAL / 1000)
-    const EARTH = 6378137
+  // useEffect(() => {
+  //   const INTERVAL = 50
+  //   const SPEED = 1.5
+  //   const MOVE_DISTANCE = SPEED * (INTERVAL / 1000)
+  //   const EARTH = 6378137
 
-    const updatePersonPosition = () => {
-      const [startLongitude, startLatitude] = personPosition
-      let north = 0
-      let east = 0
+  //   const updatePersonPosition = () => {
+  //     const [startLongitude, startLatitude] = personPosition
+  //     let north = 0
+  //     let east = 0
 
-      if (gamepads[0]) {
-        const { buttons } = gamepads[0]
-        if (buttons[12].pressed) {
-          // DPAD_UP
-          north = MOVE_DISTANCE
-        } else if (buttons[13].pressed) {
-          // DPAD_DOWN
-          north = -MOVE_DISTANCE
-        }
-        if (buttons[14].pressed) {
-          // DPAD_LEFT
-          east = -MOVE_DISTANCE
-        } else if (buttons[15].pressed) {
-          // DPAD_RIGHT
-          east = MOVE_DISTANCE
-        }
-      }
+  //     if (gamepads[0]) {
+  //       const { buttons } = gamepads[0]
+  //       if (buttons[12].pressed) {
+  //         // DPAD_UP
+  //         north = MOVE_DISTANCE
+  //       } else if (buttons[13].pressed) {
+  //         // DPAD_DOWN
+  //         north = -MOVE_DISTANCE
+  //       }
+  //       if (buttons[14].pressed) {
+  //         // DPAD_LEFT
+  //         east = -MOVE_DISTANCE
+  //       } else if (buttons[15].pressed) {
+  //         // DPAD_RIGHT
+  //         east = MOVE_DISTANCE
+  //       }
+  //     }
 
-      if (north !== 0 || east !== 0) {
-        const dLat = north / EARTH
-        const dLon = east / (EARTH * Math.cos((Math.PI * startLatitude) / 180))
+  //     if (north !== 0 || east !== 0) {
+  //       const dLat = north / EARTH
+  //       const dLon = east / (EARTH * Math.cos((Math.PI * startLatitude) / 180))
 
-        const latOffset = startLatitude + dLat * (180 / Math.PI)
-        const lonOffset = startLongitude + dLon * (180 / Math.PI)
+  //       const latOffset = startLatitude + dLat * (180 / Math.PI)
+  //       const lonOffset = startLongitude + dLon * (180 / Math.PI)
 
-        setPersonPosition([lonOffset, latOffset])
+  //       setPersonPosition([lonOffset, latOffset])
 
-        manager.send({
-          type: "control",
-          latitude: latOffset,
-          longitude: lonOffset,
-        })
-      }
-    }
+  //       manager.send({
+  //         type: "control",
+  //         latitude: latOffset,
+  //         longitude: lonOffset,
+  //       })
+  //     }
+  //   }
 
-    if (!inputLoopRef.current) {
-      inputLoopRef.current = setInterval(updatePersonPosition, INTERVAL)
-    }
+  //   if (!inputLoopRef.current) {
+  //     inputLoopRef.current = setInterval(updatePersonPosition, INTERVAL)
+  //   }
 
-    return () => {
-      if (inputLoopRef.current) {
-        clearInterval(inputLoopRef.current)
-        inputLoopRef.current = null
-      }
-    }
-  }, [gamepads, personPosition])
+  //   return () => {
+  //     if (inputLoopRef.current) {
+  //       clearInterval(inputLoopRef.current)
+  //       inputLoopRef.current = null
+  //     }
+  //   }
+  // }, [gamepads, personPosition])
 
   const onMapLoaded = (event: any) => {
     setMap(event.target)
