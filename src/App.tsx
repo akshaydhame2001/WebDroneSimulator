@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import Map, { Marker, Source, Layer } from "react-map-gl"
 import Sidebar from "./Sidebar"
 import DroneMarker from "./DroneMarker"
