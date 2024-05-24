@@ -3,7 +3,7 @@ import Map, { Marker, Source, Layer } from "react-map-gl"
 import Sidebar from "./Sidebar"
 import DroneMarker from "./DroneMarker"
 import manager, { UpdateMessage } from "./lib/manager"
-import { useGamepads } from "react-gamepads"
+// import { useGamepads } from "react-gamepads"
 import "./App.scss"
 import personimg from "./icons/person.png"
 
@@ -21,10 +21,10 @@ const App: React.FC = () => {
   const [vehicle, setVehicle] = useState<any>({})
   const [person, setPerson] = useState<any>({})
   const [connected, setConnected] = useState(false)
-  const inputLoopRef = useRef<NodeJS.Timeout | null>(null)
-  const [gamepads, setGamepads] = useState<any>({})
+  // const inputLoopRef = useRef<NodeJS.Timeout | null>(null)
+  // const [gamepads, setGamepads] = useState<any>({})
 
-  useGamepads((gamepads: any) => setGamepads(gamepads))
+  // useGamepads((gamepads: any) => setGamepads(gamepads))
 
   const clean = (map: any, layerName: string) => {
     if (map.getLayer(layerName)) {
